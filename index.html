@@ -1,173 +1,593 @@
-<!doctype html>
-<html lang="ur">
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#1565c0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Gear Dividing Head Calculator</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#eef2f5;margin:0;padding:14px;color:#17202a}
-.app{max-width:560px;margin:auto;background:#fff;padding:18px;border-radius:18px;box-shadow:0 2px 12px #0002}
-h1{font-size:21px;margin:0 0 4px}.small{font-size:13px;color:#65717e}
-label{display:block;font-weight:bold;margin-top:14px}
-input,select,button{width:100%;box-sizing:border-box;padding:13px;margin-top:7px;border:1px solid #aaa;border-radius:10px;font-size:16px}
-button{background:#1565c0;color:#fff;border:0;font-weight:bold}
-.result{margin-top:16px;padding:15px;border-radius:12px;background:#edf5ff;line-height:1.65}
-.section{margin-top:12px;padding:13px;border-radius:12px;background:#fff;border:1px solid #d7e0e8}
-.big{font-size:21px;font-weight:bold}.ok{font-weight:bold}.warn{font-weight:bold}
-hr{border:0;border-top:1px solid #d7e0e8;margin:12px 0}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:15px;
+  background:#f2f4f7;
+  font-family:Arial,"Noto Nastaliq Urdu",sans-serif;
+  color:#222;
+}
+
+.container{
+  max-width:700px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+  color:#075985;
+  font-size:27px;
+  margin:10px 0 20px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 3px 12px rgba(0,0,0,.10);
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:7px;
+}
+
+input,button{
+  width:100%;
+  padding:13px;
+  font-size:17px;
+  border-radius:9px;
+  border:1px solid #aaa;
+}
+
+button{
+  margin-top:12px;
+  background:#087f5b;
+  color:white;
+  border:0;
+  font-weight:bold;
+}
+
+.ratio{
+  background:#eef7ff;
+  padding:12px;
+  border-radius:9px;
+  margin:12px 0;
+  text-align:center;
+  font-weight:bold;
+}
+
+.result{
+  margin-top:15px;
+  background:#f8fafc;
+  border-radius:10px;
+  padding:15px;
+  border-right:5px solid #087f5b;
+}
+
+.big{
+  font-size:21px;
+  font-weight:bold;
+  margin:8px 0;
+}
+
+.small{
+  font-size:14px;
+  color:#555;
+  line-height:1.7;
+}
+
+.good{
+  background:#e9f8ef;
+  border-right-color:#198754;
+}
+
+.compound{
+  background:#fff8e6;
+  border-right-color:#e09f00;
+}
+
+.warning{
+  background:#fff3cd;
+  border-right-color:#e0a800;
+  line-height:1.7;
+}
+
+.error{
+  background:#ffe8e8;
+  border-right-color:#c92a2a;
+}
+
+.solution{
+  background:white;
+  border:1px solid #ddd;
+  border-radius:9px;
+  padding:12px;
+  margin:9px 0;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #ddd;
+  margin:15px 0;
+}
 </style>
 </head>
+
 <body>
-<main class="app">
+
+<div class="container">
+
 <h1>⚙️ Gear Dividing Head Calculator</h1>
-<div class="small">Simple + Compound Indexing</div>
 
-<label>Gear Teeth / دانت</label>
-<input id="teeth" type="number" min="1" step="1" value="37">
+<div class="card">
 
-<label>Dividing Head Ratio</label>
-<select id="ratio">
-<option value="40">40 : 1</option>
-<option value="60">60 : 1</option>
-<option value="80">80 : 1</option>
-<option value="90">90 : 1</option>
-<option value="120">120 : 1</option>
-</select>
+<label>Gear Teeth / دانتوں کی تعداد</label>
+
+<input id="teeth"
+       type="number"
+       min="2"
+       max="1000"
+       placeholder="مثلاً 46">
+
+<div class="ratio">
+Dividing Head Ratio: <b>40 : 1</b>
+</div>
 
 <label>Index Plate Hole Circles</label>
-<input id="plates" value="15,16,17,18,19,20,21,23,27,29,31,33,37,39,41,43,47,49">
 
-<button id="calc" type="button">حساب کریں / CALCULATE</button>
+<input id="circles"
+       value="15,16,17,18,19,20,21,23,27,29,31,33,37,39,41,43,47,49"
+       placeholder="مثلاً 15,16,17,18...">
 
-<div id="result" class="result" aria-live="polite"></div>
-</main>
+<button onclick="calculate()">Calculate</button>
+
+</div>
+
+<div id="output"></div>
+
+</div>
 
 <script>
-(function(){
-  function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=a%b;a=b;b=t}return a||1}
-  function isInt(x){return Number.isInteger(x)}
-  function fracText(n,d){var g=gcd(n,d);return (n/g)+"/"+(d/g)}
 
-  function simpleIndex(N,R,circles){
-    var whole=Math.floor(R/N), rem=R%N;
-    if(rem===0) return {whole:whole,hits:[]};
-    var g=gcd(rem,N), num=rem/g, den=N/g, hits=[];
-    circles.forEach(function(c){
-      var h=num*c/den;
-      if(isInt(h) && h>0 && h<c) hits.push({circle:c,holes:h});
-    });
-    return {whole:whole,num:num,den:den,hits:hits};
+const RATIO = 40;
+
+function gcd(a,b){
+  a=Math.abs(a);
+  b=Math.abs(b);
+
+  while(b){
+    let t=a%b;
+    a=b;
+    b=t;
   }
 
-  /*
-    Compound indexing:
-    Find exact representation of the fractional crank turn as:
-      a/P + b/Q
-    or
-      a/P - b/Q
-    where P and Q are available hole circles.
-    a and b are hole movements. A negative second term means the
-    second movement is in the opposite direction.
-  */
-  function compoundIndex(N,R,circles){
-    var rem=R%N;
-    var whole=Math.floor(R/N);
-    if(rem===0) return {whole:whole,solutions:[]};
+  return a;
+}
 
-    var g=gcd(rem,N), num=rem/g, den=N/g;
-    var solutions=[];
+function fraction(n,d){
 
-    for(var ip=0;ip<circles.length;ip++){
-      var P=circles[ip];
-      for(var iq=0;iq<circles.length;iq++){
-        var Q=circles[iq];
-        if(P===Q) continue;
+  if(d===0) return "";
 
-        for(var sign of [1,-1]){
-          for(var a=0;a<P;a++){
-            // b/Q = num/den - sign*a/P
-            // b = Q*(num*P - sign*a*den)/(den*P)
-            var numerator=Q*(num*P - sign*a*den);
-            var denominator=den*P;
-            if(numerator<=0) continue;
-            if(numerator % denominator!==0) continue;
-            var b=numerator/denominator;
-            if(b>0 && b<Q){
-              solutions.push({
-                P:P,Q:Q,a:a,b:b,sign:sign
-              });
-              if(solutions.length>=8) return {whole:whole,num:num,den:den,solutions:solutions};
-            }
+  let g=gcd(Math.round(Math.abs(n)),Math.round(Math.abs(d)));
+
+  n=Math.round(n/g);
+  d=Math.round(d/g);
+
+  if(d<0){
+    n=-n;
+    d=-d;
+  }
+
+  return n + "/" + d;
+}
+
+function closeEnough(a,b){
+  return Math.abs(a-b) < 1e-10;
+}
+
+function parseCircles(){
+
+  let text=document.getElementById("circles").value;
+
+  let arr=text
+    .split(",")
+    .map(x=>parseInt(x.trim()))
+    .filter(x=>Number.isInteger(x) && x>1);
+
+  return [...new Set(arr)].sort((a,b)=>a-b);
+}
+
+function simpleIndexing(remainder,circles){
+
+  let hits=[];
+
+  for(let H of circles){
+
+    let holes=remainder*H;
+
+    if(closeEnough(holes,Math.round(holes))){
+
+      let h=Math.round(holes);
+
+      if(h>0 && h<H){
+
+        hits.push({
+          circle:H,
+          holes:h
+        });
+
+      }
+    }
+  }
+
+  return hits;
+}
+
+function compoundIndexing(remainder,circles){
+
+  let solutions=[];
+
+  for(let i=0;i<circles.length;i++){
+
+    for(let j=i+1;j<circles.length;j++){
+
+      let P=circles[i];
+      let Q=circles[j];
+
+      for(let a=1;a<P;a++){
+
+        for(let b=1;b<Q;b++){
+
+          let value=(a/P)+(b/Q);
+
+          if(closeEnough(value,remainder)){
+
+            solutions.push({
+              P:P,
+              Q:Q,
+              a:a,
+              b:b,
+              type:"same",
+              value:value
+            });
+
           }
+
         }
       }
+
+      for(let a=1;a<P;a++){
+
+        for(let b=1;b<Q;b++){
+
+          let value=(a/P)-(b/Q);
+
+          if(closeEnough(value,remainder)){
+
+            solutions.push({
+              P:P,
+              Q:Q,
+              a:a,
+              b:b,
+              type:"opposite",
+              value:value
+            });
+
+          }
+
+        }
+      }
+
     }
-    return {whole:whole,num:num,den:den,solutions:solutions};
   }
 
-  function calculate(){
-    var N=parseInt(document.getElementById("teeth").value,10);
-    var R=parseInt(document.getElementById("ratio").value,10);
-    var out=document.getElementById("result");
-    var circles=document.getElementById("plates").value.split(",")
-      .map(function(x){return parseInt(x.trim(),10)})
-      .filter(function(x){return Number.isInteger(x)&&x>1});
+  let unique=[];
 
-    if(!N || N<1 || !R || !circles.length){
-      out.innerHTML="براہ کرم Teeth، Ratio اور hole circles درست درج کریں۔";
-      return;
+  for(let s of solutions){
+
+    let exists=unique.some(x =>
+      x.P===s.P &&
+      x.Q===s.Q &&
+      x.a===s.a &&
+      x.b===s.b &&
+      x.type===s.type
+    );
+
+    if(!exists){
+      unique.push(s);
     }
 
-    var sidx=simpleIndex(N,R,circles);
-    var cidx=compoundIndex(N,R,circles);
-    var s="<div><b>Required crank movement:</b> "+R+" ÷ "+N+" = "+sidx.whole;
-    if(sidx.num) s+=" + "+fracText(sidx.num,sidx.den);
-    s+=" turn</div>";
+  }
 
-    s+="<div class='section'><b>① Simple Indexing</b><hr>";
-    if(sidx.hits.length){
-      s+="<div class='big'>"+sidx.whole+" مکمل چکر + "+sidx.hits[0].holes+" holes</div>";
-      s+="<div class='ok'>"+sidx.hits[0].circle+" holes circle استعمال کریں۔</div>";
-      if(sidx.hits.length>1){
-        s+="<div class='small'>دوسرے exact options: ";
-        sidx.hits.slice(1).forEach(function(x,i){
-          if(i) s+=", ";
-          s+=x.holes+" holes on "+x.circle+" circle";
-        });
-        s+="</div>";
-      }
-    }else{
-      s+="<div class='warn'>Simple indexing: موجودہ hole circles سے exact movement نہیں بنتی۔</div>";
+  unique.sort((x,y)=>
+    (x.a+x.b)-(y.a+y.b)
+  );
+
+  return unique.slice(0,8);
+}
+
+function calculate(){
+
+  let teeth=parseInt(document.getElementById("teeth").value);
+
+  let output=document.getElementById("output");
+
+  if(!Number.isInteger(teeth) || teeth<2){
+
+    output.innerHTML=`
+      <div class="card result error">
+        <div class="big">⚠️ Teeth کی تعداد درست درج کریں</div>
+        <div class="small">
+        مثال: 31، 46، 69، 93 وغیرہ
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  let circles=parseCircles();
+
+  if(circles.length<2){
+
+    output.innerHTML=`
+      <div class="card result error">
+        کم از کم دو hole circles درج کریں۔
+      </div>
+    `;
+
+    return;
+  }
+
+  let exact=RATIO/teeth;
+
+  let whole=Math.floor(exact);
+
+  let remainder=exact-whole;
+
+  let remFraction=fraction(
+    RATIO % teeth,
+    teeth
+  );
+
+  let html="";
+
+  html+=`
+  <div class="card result good">
+
+    <div class="big">
+      Required Crank Movement
+    </div>
+
+    <div class="big">
+      40 ÷ ${teeth} =
+      ${whole} + ${remFraction} turn
+    </div>
+
+    <div class="small">
+      ہر tooth / division کے لیے crank کی یہ movement ہوگی۔
+    </div>
+
+  </div>
+  `;
+
+  if(closeEnough(remainder,0)){
+
+    html+=`
+    <div class="card result good">
+
+      <div class="big">
+        ✅ Simple Indexing
+      </div>
+
+      <div class="big">
+        ${whole} مکمل چکر
+      </div>
+
+      <div class="small">
+        Fractional movement کی ضرورت نہیں۔
+      </div>
+
+    </div>
+    `;
+
+    output.innerHTML=html;
+
+    return;
+  }
+
+  let simple=simpleIndexing(remainder,circles);
+
+  html+=`
+  <div class="card result">
+
+    <div class="big">
+      🔵 Simple Indexing
+    </div>
+  `;
+
+  if(simple.length){
+
+    let s=simple[0];
+
+    html+=`
+      <div class="big">
+        ${whole} مکمل چکر +
+        ${s.holes} holes
+        on ${s.circle} holes circle
+      </div>
+
+      <div class="small">
+        یہ exact simple indexing ہے۔
+      </div>
+    `;
+
+  }else{
+
+    html+=`
+      <div class="big">
+        ❌ Simple Indexing نہیں بنتی
+      </div>
+
+      <div class="small">
+        موجودہ hole circles میں
+        ${remFraction}
+        کو ایک ہی circle سے exact حاصل نہیں کیا جا سکتا۔
+      </div>
+    `;
+
+  }
+
+  html+=`
+  </div>
+  `;
+
+  let compound=compoundIndexing(remainder,circles);
+
+  html+=`
+  <div class="card result compound">
+
+    <div class="big">
+      🟠 Compound Indexing
+    </div>
+
+    <div class="small">
+      Fractional movement کو دو مختلف hole circles
+      کے ذریعے exact حاصل کرنے کی کوشش کی گئی ہے۔
+    </div>
+  `;
+
+  if(compound.length){
+
+    if(simple.length){
+
+      html+=`
+      <div class="small">
+        ⚠️ Simple indexing پہلے ہی available ہے۔
+        نیچے compound کے exact alternatives صرف reference کے لیے ہیں۔
+      </div>
+      `;
+
     }
-    s+="</div>";
 
-    s+="<div class='section'><b>② Compound Indexing</b><hr>";
-    if(cidx.solutions.length){
-      var sol=cidx.solutions[0];
-      s+="<div class='big'>"+cidx.whole+" مکمل چکر</div>";
-      if(sol.a===0){
-        s+="Plate movement: "+sol.b+" holes on "+sol.Q+" circle";
-      }else if(sol.sign===1){
-        s+="Crank: "+sol.a+" holes on "+sol.P+" circle<br>+ Plate: "+sol.b+" holes on "+sol.Q+" circle <b>(same direction)</b>";
+    compound.forEach((s,index)=>{
+
+      let directionText="";
+
+      if(s.type==="same"){
+
+        directionText=`
+          <b>Same Direction</b><br>
+          Crank: ${s.a} holes on ${s.P} circle — CW<br>
+          Plate: ${s.b} holes on ${s.Q} circle — CW
+        `;
+
       }else{
-        s+="Crank: "+sol.a+" holes on "+sol.P+" circle<br>+ Plate: "+sol.b+" holes on "+sol.Q+" circle <b>(opposite direction)</b>";
-      }
-      if(cidx.solutions.length>1){
-        s+="<div class='small'><br>مزید exact compound options بھی دستیاب ہیں۔</div>";
-      }
-    }else{
-      s+="<div>موجودہ hole circles سے exact compound combination نہیں ملا۔</div>";
-    }
-    s+="</div>";
 
-    s+="<div class='small' style='margin-top:12px'>⚠️ Compound indexing میں plate/crank کی direction اپنی dividing head کی manual کے مطابق verify کریں۔ مشین پر کٹ لگانے سے پہلے known test سے تصدیق کریں۔</div>";
-    out.innerHTML=s;
+        directionText=`
+          <b>Opposite Direction</b><br>
+          Crank: ${s.a} holes on ${s.P} circle — CW<br>
+          Plate: ${s.b} holes on ${s.Q} circle — CCW
+        `;
+
+      }
+
+      html+=`
+      <div class="solution">
+
+        <b>Compound Option ${index+1}</b>
+
+        <hr>
+
+        <div>
+          ${whole} مکمل چکر
+        </div>
+
+        <div style="margin-top:8px">
+          ${directionText}
+        </div>
+
+        <div class="small" style="margin-top:8px">
+          Mathematical check:
+          ${s.a}/${s.P}
+          ${s.type==="same" ? "+" : "-"}
+          ${s.b}/${s.Q}
+          =
+          ${remFraction}
+        </div>
+
+      </div>
+      `;
+
+    });
+
+  }else{
+
+    html+=`
+      <div class="big">
+        ❌ Compound solution نہیں ملی
+      </div>
+
+      <div class="small">
+        موجودہ hole-circle list کے ساتھ اس gear کے لیے
+        exact two-circle compound solution نہیں ملی۔
+        اس صورت میں دوسری plate یا مختلف indexing method
+        کی ضرورت ہو سکتی ہے۔
+      </div>
+    `;
+
   }
 
-  document.getElementById("calc").addEventListener("click",calculate);
-  calculate();
-})();
+  html+=`
+  </div>
+  `;
+
+  html+=`
+  <div class="card result warning">
+
+    <div class="big">
+      ⚠️ Machine Setup Note
+    </div>
+
+    <div class="small">
+
+      Compound indexing میں plate کو مقررہ direction
+      میں حرکت دینی پڑ سکتی ہے۔
+
+      <br><br>
+
+      <b>
+      CW / CCW direction اپنے dividing head کی actual
+      construction کے مطابق لازمی verify کریں۔
+      </b>
+
+      <br><br>
+
+      پہلے machine کو بغیر cutting کے test position پر
+      چلا کر check کریں، خاص طور پر backlash اور worm
+      direction کو verify کریں۔
+
+    </div>
+
+  </div>
+  `;
+
+  output.innerHTML=html;
+
+}
+
 </script>
+
 </body>
 </html>
