@@ -108,7 +108,6 @@ button{
   border-right-color:#c92a2a;
 }
 
-/* Main practical compound solution */
 .mainSolution{
   background:#ffffff;
   border:2px solid #e09f00;
@@ -550,11 +549,37 @@ function calculate(){
       </div>
 
       <div class="turnBox">
-        ${whole} مکمل چکر
+        🔄 Complete Turns:
+        <b>${whole}</b>
       </div>
 
-      <div class="small">
-        Fractional movement کی ضرورت نہیں۔
+      <div class="setupRow">
+
+        <div class="setupLabel">
+          🔵 Plate / Hole Circle
+        </div>
+
+        <div class="setupValue">
+          مکمل چکر — hole circle کی ضرورت نہیں
+        </div>
+
+      </div>
+
+      <div class="setupRow">
+
+        <div class="setupLabel">
+          🔧 Crank Holes
+        </div>
+
+        <div class="setupValue">
+          0 holes
+        </div>
+
+      </div>
+
+      <div class="checkBox">
+        🛠️ Machine Setup:
+        ${whole} complete turn
       </div>
 
     </div>
@@ -592,24 +617,44 @@ function calculate(){
     html+=`
 
       <div class="turnBox">
-        ${whole} مکمل چکر
+        🔄 Complete Turns:
+        <b>${whole}</b>
       </div>
 
       <div class="setupRow">
 
-        <span class="setupLabel">
-          Crank:
-        </span>
+        <div class="setupLabel">
+          🔵 Plate / Hole Circle
+        </div>
 
-        <span class="setupValue">
-          ${s.holes} holes
-          on ${s.circle} holes circle
-        </span>
+        <div class="setupValue">
+          ${s.circle} holes
+        </div>
 
       </div>
 
-      <div class="small">
-        یہ exact simple indexing ہے۔
+      <div class="setupRow">
+
+        <div class="setupLabel">
+          🔧 Crank Holes
+        </div>
+
+        <div class="setupValue">
+          ${s.holes} holes
+        </div>
+
+      </div>
+
+      <div class="checkBox">
+        🛠️ Machine Setup:
+        ${whole} complete turn
+        +
+        ${s.holes} holes
+        on ${s.circle}-hole circle
+      </div>
+
+      <div class="small" style="margin-top:12px;text-align:center">
+        ✅ یہی Simple Indexing کا practical setup ہے۔
       </div>
 
     `;
